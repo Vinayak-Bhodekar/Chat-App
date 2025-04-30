@@ -6,10 +6,12 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-import userRoutes from "./routes/userRoutes.js"
-import messageRoutes from "./routes/messageRoutes.js"
+import healthCheckRoutes from "./routes/healthcheck.router.js"
+//import userRoutes from "./routes/user.router.js"
 
-app.use("/api/users", userRoutes)
-app.use("/api/messages",messageRoutes)
+
+app.use("/api/Healthcheck", healthCheckRoutes)
+//app.use("/api/users", userRoutes)
+//app.use("/api/messages",messageRoutes)
 
 export default app

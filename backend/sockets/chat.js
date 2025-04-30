@@ -1,5 +1,5 @@
-import {saveSocketId, removesocketId,getUserByDocketId} from "../controllers/user.js"
-import {saveMessage,getMessages} from "../controllers/message.js"
+/*import {saveSocketId, removesocketId,getUserByDocketId} from "../controllers/user.controller.js"
+import {saveMessage,getMessages} from "../controllers/message.controller.js"
 
 
 const socketHandler = (io) => {
@@ -28,4 +28,4 @@ const socketHandler = (io) => {
             await removesocketId(socket.id)
         })
     })
-}
+}*/
