@@ -1,0 +1,31 @@
+import monggose, { Schema } from 'mongoose';    
+
+const roomSchema = new mongoose.Schema({
+    roomName: {
+        type: String,
+        required: true
+    },
+    isGroupChat: {
+        type: Boolean,
+        required: true
+    },
+    members: [
+        {
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "User"
+        },
+    ],
+    groupAdmin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
+    lastMessage: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Message"
+    }
+},
+{
+    timestamps: true
+})
+
+export const Room = mongoose.model("Room", roomSchema)

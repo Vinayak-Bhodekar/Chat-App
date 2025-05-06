@@ -7,11 +7,13 @@ const messageSchema = new mongoose.Schema({
         required: true
     },
     room: {
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Room",
         required: true
     },
     content: {
         type: String,
+        trim:true,
         required: true
     }
     },

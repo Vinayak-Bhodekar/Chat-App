@@ -2,6 +2,7 @@ import {User} from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -27,9 +28,10 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req,res) => {
+    console.log("register user")
     const {userName,password,email,firstName,lastName} = req.body
 
-    if([userName,password,email,firstName,lastName].some((field) => {field?.trim() === ""})) {
+    if([userName,password,email,firstName,lastName].some((field) => field?.trim() === "")) {
         throw new ApiError(400,"All fields are required")
     }
 
@@ -39,18 +41,20 @@ const registerUser = asyncHandler(async (req,res) => {
             {email: email}
         ]
     })
+    
+    console.log(existingUser)
 
-    if(!existingUser) {
+    if(existingUser) {
         throw new ApiError(400,"User already exists")
     }
 
     try {
         const user = await User.create({
-            userName,
-            password,
-            email,
-            firstName,
-            lastName 
+            userName:userName,
+            password:password,
+            email:email,
+            firstName:firstName,
+            lastName:lastName 
         })
     
         if(!user) {
@@ -63,7 +67,7 @@ const registerUser = asyncHandler(async (req,res) => {
 
     } catch (error) {
         console.log("error in register",error)
-        throw new ApiError(500,"Internal server error")
+        throw new ApiError(501,"Internal server error")
     }
 
 })
@@ -104,14 +108,15 @@ const logInUser = asyncHandler(async (req,res) => {
     return res.status(200)
     .cookie("refreshToken",refreshToken,option)
     .cookie("accessToken",accessToken,option)
-    .json(new ApiResponse(200,"User logged in successfully"))
+    .json(new ApiResponse(200,"User logged in successfully",user))
 
 })
 
 const logOutUser = asyncHandler(async (req,res) => {
-    const user = req.user._id
-
-    await User.find.findByIdAndUpdate(
+    
+    const user = req?.user._id
+    
+    await User.findByIdAndUpdate(
         user,
         {
             $set: {
@@ -135,14 +140,17 @@ const logOutUser = asyncHandler(async (req,res) => {
 })
 
 const refreshAccessToken = asyncHandler(async (req,res) => {
-    const {incommingRefreshToken} = req.cookies.refreshToken || req.body.refreshToken
+    const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    
 
     if(!incommingRefreshToken) {
         throw new ApiError(401,"Unauthorized access")
     }
 
     try {
+        console.log("decodedToken")
         const decodedToken = jwt.verify(incommingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
+        console.log("decodedToken",decodedToken)
         const user = await User.findById(decodedToken.id).select("+refreshToken")
 
         if(!user) {
@@ -152,7 +160,6 @@ const refreshAccessToken = asyncHandler(async (req,res) => {
         if(user.refreshToken !== incommingRefreshToken) {
             throw new ApiError(401,"Unauthorized access")
         }
-
         const {accessToken} = await generateAccessAndRefreshToken(user._id)
         
         const option = {
