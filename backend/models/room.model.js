@@ -1,9 +1,8 @@
-import monggose, { Schema } from 'mongoose';    
+import mongoose, { Schema } from 'mongoose';    
 
 const roomSchema = new mongoose.Schema({
     roomName: {
-        type: String,
-        required: true
+        type: String
     },
     isGroupChat: {
         type: Boolean,

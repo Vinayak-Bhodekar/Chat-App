@@ -192,9 +192,10 @@ const changePasssword = asyncHandler(async (req,res) => {
         }
     
         const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+        console.log("isPasswordCorrect",isPasswordCorrect)
     
         if(!isPasswordCorrect) {
-            throw new ApiError(401,"Invalid credentials")
+            throw new ApiError(401,"Invalid credential")
         }
     
         user.password = newPassword
@@ -208,10 +209,34 @@ const changePasssword = asyncHandler(async (req,res) => {
     }
 })
 
+const getLoggedInUser = asyncHandler(async (req,res) => {
+    const userId = req.user._id
+
+    if(!userId) {
+        throw new ApiError(404,"User not found")
+    }
+
+    try {
+        const user = await User.findById(userId)
+        
+        if(!user) {
+            throw new ApiError(400,"User not found")
+        }
+    
+        res
+        .status(200)
+        .json(new ApiResponse(200,"user found",user))
+    } catch (error) {
+        console.log("no user found, error:-",error)
+        throw new ApiError(404,"User Not found")
+    }
+})
+
 export {
     registerUser,
     logInUser,
     logOutUser,
     refreshAccessToken,
-    changePasssword
+    changePasssword,
+    getLoggedInUser
 }
