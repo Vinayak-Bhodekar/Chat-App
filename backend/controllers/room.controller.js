@@ -147,8 +147,6 @@ const addToGroup = asyncHandler(async (req,res) => {
 
     try {
         const userExisted = await User.findById(participateId)
-
-        console.log("userExisted",userExisted)
         
     
         if(!userExisted) {
@@ -156,8 +154,6 @@ const addToGroup = asyncHandler(async (req,res) => {
         }
     
         const groupExisted = await Room.findById(groupId)
-
-        console.log("groupExisted",groupExisted)
 
         if(groupExisted.isGroupChat === false) {
             throw new ApiError(400,"this is not a group chat")
@@ -183,7 +179,7 @@ const addToGroup = asyncHandler(async (req,res) => {
         .status(200)
         .json(new ApiResponse(200,"Successfully add to group"))
     } catch (error) {
-        throw new ApiError(400,"Cant add participate in the room",error)
+        throw new ApiError(400,"Cant add participate in the room")
     }
 })
 
@@ -268,7 +264,9 @@ const deleteRoom = asyncHandler(async (req,res) => {
             throw new ApiError(401,"You are not room admin")
         }
 
-        await Room.findByIdAndDelete(roomId)
+        await Message.deleteMany({room:room._id})
+
+        await Room.findByIdAndDelete(room._id)
 
         res
         .status(200)

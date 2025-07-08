@@ -1,31 +1,31 @@
-/*import {saveSocketId, removesocketId,getUserByDocketId} from "../controllers/user.controller.js"
-import {saveMessage,getMessages} from "../controllers/message.controller.js"
-
-
 const socketHandler = (io) => {
     io.on("connection", (socket) => {
-        console.log("A user connected", socket.id)
+        console.group("New client connected:", socket.id)
 
-        socket.on("register", async (username) => {
-            await saveSocketId(username,socket.id)
-
-            console.log(`${username} registered with socket id ${socket.id}`)
+        socket.on("joinRoom", ({roomId,userId}) => {
+            socket.join(roomId);
+            console.log(`${userId} joined room: ${roomId}`)
+            socket.to(roomId).emit("userJoined",{userId})
         })
 
-        socket.on("join-room", (roomName) => {
-            socket.join(roomName) 
-            console.log(`socket ${socket.id} joined room ${roomId}`)
-        })
+        socket.on("sendMessage", ({roomId,senderId,text}) => {
+            const message = {
+                senderId,
+                text,
+                createdAt: new Date()
+            }
 
-        socket.on("send-message", async ({room,senderId,content}) => {
-            const message = await saveMessage(room,senderId,content)
-            io.to(room).emit("receive-message",message)
-        })
+            io.to(roomId).emit("newMessage",message)
+        });
+        
+        socket.on("typing", ({roomId,userId}) => {
+            socket.to(roomId).emit("userTyping",{userId})
+        });
 
-        socket.on("disconnect",async () => {
-            console.log("A user disconnected:",socket.id)
+        socket.on("disconnected", () => {
+            console.log("Client disconnected:", socket.id)
+        });
+    });
+}
 
-            await removesocketId(socket.id)
-        })
-    })
-}*/
+export {socketHandler};
