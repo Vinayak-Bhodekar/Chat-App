@@ -33,6 +33,10 @@ const userSchema = new Schema({
         required: true,
         trim: true
         },
+    isVarified:{
+        type: Boolean,
+        default: false
+    },
     socketId: {
         type:String,
         default:null

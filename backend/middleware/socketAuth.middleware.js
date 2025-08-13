@@ -15,7 +15,7 @@ const socketAuthMiddleware = async (socket,next) => {
         const user = await User.findById(decoded._id).select("-password")
 
         if(!user) {
-            return new ApiError(404,"User not found");
+            throw new ApiError(404,"User not found");
         }
 
         socket.user = user

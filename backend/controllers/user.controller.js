@@ -3,7 +3,12 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import OTPGenerator from "../utils/OTPGenerator.js";
+import sendOTP from "../utils/sendEmails.js";
 
+
+let otpStore = {};
 
 const generateAccessAndRefreshToken = async (userId) => {
 
@@ -74,14 +79,14 @@ const registerUser = asyncHandler(async (req,res) => {
 
 const logInUser = asyncHandler(async (req,res) => {
 
-    const {username,email,password} = req.body
+    const {identity,password} = req.body
 
-    if(!email || !password) {
+    if(!identity || !password) {
         throw new ApiError(400,"Email and password are required")
     }
 
     const user = await User.findOne({
-        $or:[{email:email},{userName:username}]
+        $or:[{email:identity},{userName:identity}]
     }).select("+password")
 
     if(!user) {
@@ -148,9 +153,9 @@ const refreshAccessToken = asyncHandler(async (req,res) => {
     }
 
     try {
-        console.log("decodedToken")
+        
         const decodedToken = jwt.verify(incommingRefreshToken,process.env.REFRESH_TOKEN_SECRET)
-        console.log("decodedToken",decodedToken)
+        
         const user = await User.findById(decodedToken.id).select("+refreshToken")
 
         if(!user) {
@@ -232,11 +237,97 @@ const getLoggedInUser = asyncHandler(async (req,res) => {
     }
 })
 
+const OTPsender = asyncHandler(async (req,res) => {
+
+    const userId = req.user._id
+    
+    
+
+    if(!userId) {
+        throw new ApiError(404,"User not found")
+    }
+
+    try {
+
+        const user = await User.findById(userId)
+
+        if(!user) {
+            throw new ApiError(400, "User not found in DB")
+        }
+
+        if (user.isVarified) {
+            throw new ApiResponse(200,"User Email is already verified")
+        }
+
+        const otp = OTPGenerator()
+        otpStore[user.email] = {otp, expires: Date.now()+5*60*1000}
+        console.log(user.email)
+        await sendOTP(user.email,otp)
+
+        res
+        .status(200)
+        .json(new ApiResponse(200,"OTP is sent to Email successfully"))
+
+
+        
+    } catch (error) {
+        console.log("Cant Send OTP",error)
+        throw new ApiError(400,"Cant Send OTP",error)
+    }
+})
+
+const OTPVerification = asyncHandler( async (req,res) => {
+    console.log("hello")
+    console.log(req.body);
+
+
+    const {otp} = req.body;
+
+
+    console.log(data)
+
+    const userId = req.user._id
+
+    if(!userId) {
+        throw new ApiError(404,"User not found")
+    }
+
+    if(!otp) {
+        throw new ApiError(400,"OTP is required for Verification")
+    }
+
+    try {
+        const user = await User.findById(userId);
+
+        if(!user) {
+            throw new ApiError(400, "User not found in DB")
+        }
+
+        if(otp !== otpStore[email].otp) {
+            throw new ApiError(401, "Invalid OTP")
+        }
+        else {
+            if(otpStore[email].expires > Date.now()){
+                user.isVarified = true
+                await user.save({validateBeforeSave:false})
+                res
+                .status(200)
+                .json(new ApiResponse(200,"Successfully verified", user))
+            }
+        }
+
+    } catch (error) {
+        throw new ApiError(400,"Error in Verification email",error)
+    }
+})
+
 export {
     registerUser,
     logInUser,
     logOutUser,
     refreshAccessToken,
     changePasssword,
-    getLoggedInUser
+    getLoggedInUser,
+    OTPsender,
+    OTPVerification
 }

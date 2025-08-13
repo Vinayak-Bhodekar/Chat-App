@@ -5,7 +5,9 @@ import {
     logOutUser,
     refreshAccessToken,
     changePasssword,
-    getLoggedInUser
+    getLoggedInUser,
+    OTPsender,
+    OTPVerification
 } from '../controllers/user.controller.js';
 
 import { verifyToken } from '../middleware/auth.middleware.js';
@@ -18,5 +20,8 @@ router.route("/logout").get(verifyToken,logOutUser)
 router.route("/refreshtoken").get(verifyToken,refreshAccessToken)
 router.route("/changepassword").post(verifyToken,changePasssword)
 router.route("/loggedUser").get(verifyToken,getLoggedInUser)
+router.route("/OTPsender").get(verifyToken,OTPsender)
+router.route("/OTPVerification").post(verifyToken,OTPVerification)
+
 
 export default router
