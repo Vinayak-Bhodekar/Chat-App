@@ -8,6 +8,7 @@ import OTPGenerator from "../utils/OTPGenerator.js";
 import sendOTP from "../utils/sendEmails.js";
 
 
+
 let otpStore = {};
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -261,7 +262,7 @@ const OTPsender = asyncHandler(async (req,res) => {
 
         const otp = OTPGenerator()
         otpStore[user.email] = {otp, expires: Date.now()+5*60*1000}
-        console.log(user.email)
+        console.log(otpStore)
         await sendOTP(user.email,otp)
 
         res
@@ -277,15 +278,8 @@ const OTPsender = asyncHandler(async (req,res) => {
 })
 
 const OTPVerification = asyncHandler( async (req,res) => {
-    console.log("hello")
-    console.log(req.body);
-
-
+    
     const {otp} = req.body;
-
-
-    console.log(data)
-
     const userId = req.user._id
 
     if(!userId) {
@@ -297,17 +291,23 @@ const OTPVerification = asyncHandler( async (req,res) => {
     }
 
     try {
+
+
         const user = await User.findById(userId);
 
         if(!user) {
             throw new ApiError(400, "User not found in DB")
         }
 
-        if(otp !== otpStore[email].otp) {
+        console.log(otpStore)
+
+        if(otp !== otpStore[user.email].otp) {
+            console.log("wrong otp")
             throw new ApiError(401, "Invalid OTP")
         }
         else {
-            if(otpStore[email].expires > Date.now()){
+            if(otpStore[user.email].expires > Date.now()){
+                console.log("right otp")
                 user.isVarified = true
                 await user.save({validateBeforeSave:false})
                 res

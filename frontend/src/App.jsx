@@ -3,10 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import Login from './pages/login'
+import Login from './pages/Login'
 import Signup from './pages/Signup'
 import axios from 'axios';
 import Dashboard from "./pages/Dashboard"
+import VerifyEmail from './pages/VerifyEmail';
 
 axios.defaults.withCredentials = true;
 
@@ -44,6 +45,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/signup" element={<Signup setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/verifyemail" element={<VerifyEmail />} />
         <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} replace />
         <Route path="/"
         element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />

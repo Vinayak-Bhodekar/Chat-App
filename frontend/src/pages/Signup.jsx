@@ -2,6 +2,7 @@ import React,{useState,useEffect} from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import Dashboard from './Dashboard'
+import VerifyEmail from './VerifyEmail'
 
 
 function Signup({setIsAuthenticated}) {
@@ -19,8 +20,7 @@ function Signup({setIsAuthenticated}) {
           alert("user created successfully")
           const loginForm = {identity: form.email, password: form.password}
           await axios.post("http://localhost:9000/api/Users/login",loginForm, {withCredentials: true})
-          setIsAuthenticated(true)
-          navigate("/Dashboard")
+          navigate("/VerifyEmail")
         } catch (error) {
           console.log("user not created:",error)
         }
